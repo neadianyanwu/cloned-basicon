@@ -1,0 +1,31 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [12.x]
+        steps:
+            - uses: actions/checkout@v2
+            - uses: JS-DevTools/npm-publish@v1
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  registry-url: 'https://registry.npmjs.org'
+            - name: clean cache
+              run: npm cache clean --force
+            - name: Installing dependecies
+              run: npm install
+            - name: Load svg to react dependecies
+              run: node load-icons.js
+            - name: publish to npm
+              run: npm install -g np && np publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  CI: true
